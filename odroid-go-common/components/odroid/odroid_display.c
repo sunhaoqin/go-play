@@ -100,53 +100,52 @@ DRAM_ATTR static const ili_init_cmd_t ili_sleep_cmds[] = {
 // 2.4" LCD
 DRAM_ATTR static const ili_init_cmd_t ili_init_cmds[] = {
     // VCI=2.8V
-    //************* Start Initial Sequence **********//
-    {TFT_CMD_SWRESET, {0}, 0x80},
-    {0xCF, {0x00, 0xc3, 0x30}, 3},
-    {0xED, {0x64, 0x03, 0x12, 0x81}, 4},
-    {0xE8, {0x85, 0x00, 0x78}, 3},
-    {0xCB, {0x39, 0x2c, 0x00, 0x34, 0x02}, 5},
-    {0xF7, {0x20}, 1},
-    {0xEA, {0x00, 0x00}, 2},
-    {0xC0, {0x1B}, 1},    //Power control   //VRH[5:0]
-    {0xC1, {0x12}, 1},    //Power control   //SAP[2:0];BT[3:0]
-    {0xC5, {0x32, 0x3C}, 2},    //VCM control
-    {0xC7, {0x91}, 1},    //VCM control2
-    //{0x36, {(MADCTL_MV | MADCTL_MX | TFT_RGB_BGR)}, 1},    // Memory Access Control
-    {0x36, {(MADCTL_MV | MADCTL_MY | TFT_RGB_BGR)}, 1},    // Memory Access Control
+    {0x10, {0}, 0x80},
+
+    {0x10, {0}, 0x80},
+
+    {0x11, {0}, 0x80},
+
+    /* Porch Setting */
+    {0xB2, {0x0c, 0x0c, 0x00, 0x33, 0x33}, 5},
+    /* Gate Control, Vgh=13.65V, Vgl=-10.43V */
+    {0xB7, {0x35}, 1},
+    /* VCOM Setting, VCOM=1.175V */
+    {0xBB, {0x2B}, 1},
+    /* LCM Control, XOR: BGR, MX, MH */
+    {0xC0, {0x2C}, 1},
+    /* VDV and VRH Command Enable, enable=1 */
+    {0xC2, {0x01, 0xFF}, 2},
+    /* VRH Set, Vap=4.4+... */
+    {0xC3, {0x11}, 1},
+    /* VDV Set, VDV=0 */
+    {0xC4, {0x20}, 1},
+    /* Frame Rate Control, 60Hz, inversion=0 */
+    {0xC6, {0x0f}, 1},
+    /* Power Control 1, AVDD=6.8V, AVCL=-4.8V, VDDS=2.3V */
+    {0xD0, {0xA4, 0xA1}, 2},
+
+    {0x21, {0}, 0x80},
+    /* Positive Voltage Gamma Control */
+    {0xE0, {0xD0, 0x08, 0x11, 0x08, 0x0c, 0x15, 0x39, 0x33, 0x50, 0x36, 0x13, 0x14, 0x29, 0x29}, 14},
+    /* Negative Voltage Gamma Control */
+    {0xE1, {0xD0, 0x08, 0x10, 0x08, 0x06, 0x06, 0x39, 0x44, 0x51, 0x0b, 0x16, 0x14, 0x2f, 0x31}, 14},
+   
+    {0x36, {(1 << 7) | (1 << 5)}, 1},
+
+    // {0xE4, {0x1D, 0x0, 0x10}, 3},
+    /* Interface Pixel Format, 16bits/pixel for RGB/MCU interface */
     {0x3A, {0x55}, 1},
-    {0xB1, {0x00, 0x1B}, 2},  // Frame Rate Control (1B=70, 1F=61, 10=119)
-    {0xB6, {0x0A, 0xA2}, 2},    // Display Function Control
-    {0xF6, {0x01, 0x30}, 2},
-    {0xF2, {0x00}, 1},    // 3Gamma Function Disable
-    {0x26, {0x01}, 1},     //Gamma curve selected
-
-    //Set Gamma
-    {0xE0, {0x0F, 0x31, 0x2B, 0x0C, 0x0E, 0x08, 0x4E, 0xF1, 0x37, 0x07, 0x10, 0x03, 0x0E, 0x09, 0x00}, 15},
-    {0XE1, {0x00, 0x0E, 0x14, 0x03, 0x11, 0x07, 0x31, 0xC1, 0x48, 0x08, 0x0F, 0x0C, 0x31, 0x36, 0x0F}, 15},
-
-/*
-    // LUT
-    {0x2d, {0x01, 0x03, 0x05, 0x07, 0x09, 0x0b, 0x0d, 0x0f, 0x11, 0x13, 0x15, 0x17, 0x19, 0x1b, 0x1d, 0x1f,
-            0x21, 0x23, 0x25, 0x27, 0x29, 0x2b, 0x2d, 0x2f, 0x31, 0x33, 0x35, 0x37, 0x39, 0x3b, 0x3d, 0x3f,
-            0x00, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x09, 0x0a, 0x0b, 0x0c, 0x0d,
-            0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c,
-            0x1d, 0x1d, 0x1e, 0x1f, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x26, 0x27, 0x28, 0x29, 0x2a,
-            0x2b, 0x2c, 0x2d, 0x2e, 0x2f, 0x30, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39,
-            0x00, 0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e, 0x10, 0x12, 0x12, 0x14, 0x16, 0x18, 0x1a,
-            0x1c, 0x1e, 0x20, 0x22, 0x24, 0x26, 0x26, 0x28, 0x2a, 0x2c, 0x2e, 0x30, 0x32, 0x34, 0x36, 0x38}, 128},
-*/
-
-    {0x11, {0}, 0x80},    //Exit Sleep
-    {0x29, {0}, 0x80},    //Display on
-
+    /* Porch Setting */
+    /* Display On */
+    {0x29, {0}, 0x80},
     {0, {0}, 0xff}
 };
 
 static uint16_t* line_buffer_get()
 {
     uint16_t* buffer;
-    if (xQueueReceive(line_buffer_queue, &buffer, 1000 / portTICK_RATE_MS) != pdTRUE)
+    if (xQueueReceive(line_buffer_queue, &buffer, 10000 / portTICK_RATE_MS) != pdTRUE)
     {
         abort();
     }
@@ -156,7 +155,7 @@ static uint16_t* line_buffer_get()
 
 void line_buffer_put(uint16_t* buffer)
 {
-    if (xQueueSend(line_buffer_queue, &buffer, 1000 / portTICK_RATE_MS) != pdTRUE)
+    if (xQueueSend(line_buffer_queue, &buffer, 10000 / portTICK_RATE_MS) != pdTRUE)
     {
         abort();
     }
@@ -371,7 +370,7 @@ void send_reset_drawing(int left, int top, int width, int height)
 
 void send_continue_wait()
 {
-    if(xSemaphoreTake(spi_empty, 1000 / portTICK_RATE_MS) != pdTRUE )
+    if(xSemaphoreTake(spi_empty, 10000 / portTICK_RATE_MS) != pdTRUE )
     {
         abort();
     }
@@ -382,15 +381,15 @@ void send_continue_line(uint16_t *line, int width, int lineCount)
     spi_transaction_t* t;
 
 
-    t = spi_get_transaction();
+    // t = spi_get_transaction();
 
 
-    t->tx_data[0] = 0x3C;   //memory write continue
-    t->length = 8;
-    t->user = (void*)0;
-    t->flags = SPI_TRANS_USE_TXDATA;
+    // t->tx_data[0] = 0x3C;   //memory write continue
+    // t->length = 8;
+    // t->user = (void*)0;
+    // t->flags = SPI_TRANS_USE_TXDATA;
 
-    spi_put_transaction(t);
+    // spi_put_transaction(t);
 
 
     t = spi_get_transaction();
@@ -1161,7 +1160,7 @@ void ili9341_write_frame_nes(uint8_t* buffer, uint16_t* myPalette, uint8_t scale
         }
         else
         {
-            send_reset_drawing((320 / 2) - (NES_GAME_WIDTH / 2), (240 / 2) - (NES_GAME_HEIGHT / 2), NES_GAME_WIDTH, NES_GAME_HEIGHT);
+            send_reset_drawing((320 - NES_GAME_WIDTH) / 2, ((240 - NES_GAME_HEIGHT) / 2), NES_GAME_WIDTH, NES_GAME_HEIGHT);
 
             for (y = 0; y < NES_GAME_HEIGHT; y += LINE_COUNT)
             {
@@ -1426,7 +1425,7 @@ void odroid_display_lock_gb_display()
         if (!gb_mutex) abort();
     }
 
-    if (xSemaphoreTake(gb_mutex, 1000 / portTICK_RATE_MS) != pdTRUE)
+    if (xSemaphoreTake(gb_mutex, 10000 / portTICK_RATE_MS) != pdTRUE)
     {
         abort();
     }
@@ -1450,7 +1449,7 @@ void odroid_display_lock_nes_display()
         if (!nes_mutex) abort();
     }
 
-    if (xSemaphoreTake(nes_mutex, 1000 / portTICK_RATE_MS) != pdTRUE)
+    if (xSemaphoreTake(nes_mutex, 500000 / portTICK_RATE_MS) != pdTRUE)
     {
         abort();
     }
@@ -1474,7 +1473,7 @@ void odroid_display_lock_sms_display()
         if (!sms_mutex) abort();
     }
 
-    if (xSemaphoreTake(sms_mutex, 1000 / portTICK_RATE_MS) != pdTRUE)
+    if (xSemaphoreTake(sms_mutex, 10000 / portTICK_RATE_MS) != pdTRUE)
     {
         abort();
     }

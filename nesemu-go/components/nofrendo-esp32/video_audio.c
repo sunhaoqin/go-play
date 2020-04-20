@@ -54,7 +54,7 @@
 #define DEFAULT_SAMPLERATE   32000
 #define  DEFAULT_FRAGSIZE     512
 
-#define  DEFAULT_WIDTH        256
+#define  DEFAULT_WIDTH        NES_SCREEN_WIDTH
 #define  DEFAULT_HEIGHT       NES_VISIBLE_HEIGHT
 
 odroid_volume_level Volume;
@@ -238,11 +238,11 @@ static void free_write(int num_dirties, rect_t *dirty_rects)
    bmp_destroy(&myBitmap);
 }
 
-static uint8_t lcdfb[256 * 224];
+static uint8_t lcdfb[DEFAULT_WIDTH * DEFAULT_HEIGHT];
 static void custom_blit(bitmap_t *bmp, int num_dirties, rect_t *dirty_rects) {
     if (bmp->line[0] != NULL)
     {
-        memcpy(lcdfb, bmp->line[0], 256 * 224);
+        memcpy(lcdfb, bmp->line[0], DEFAULT_WIDTH * DEFAULT_HEIGHT);
 
         void* arg = (void*)lcdfb;
     	xQueueSend(vidQueue, &arg, portMAX_DELAY);
@@ -533,6 +533,7 @@ int osd_init()
     Volume = odroid_settings_Volume_get();
 
     scaling_enabled = odroid_settings_ScaleDisabled_get(ODROID_SCALE_DISABLE_NES) ? false : true;
+    // scaling_enabled = false;
 
     previousJoystickState = odroid_input_read_raw();
     ignoreMenuButton = previousJoystickState.values[ODROID_INPUT_MENU];
